@@ -31,6 +31,10 @@ class Tree {
     void right_rotate(Node* y);
     void insert(Node* z);
     void insert_fixup(Node* z);
+    void remove(Node* z);
+    void transplant(Node* u, Node*v);
+    Node* tree_minimum(Node* v);
+    void remove_fixup(Node* x);
     void pre_order(Node* root);
     Tree();
     ~Tree();

@@ -74,8 +74,6 @@ void Tree::right_rotate(Node* x) {
 }
 
 void Tree::insert(Node* z) {
-    cout << "-----" << endl;
-
     Node* y = T_NIL;
     Node* x = this->root;
 
@@ -93,7 +91,7 @@ void Tree::insert(Node* z) {
 
     if (y == T_NIL) {
         this->root = z;
-    } else if (z->key < y->key) {  // EU MEXI AQUI
+    } else if (z->key < y->key) {
         y->left = z;
     } else {
         y->right = z;
@@ -103,11 +101,7 @@ void Tree::insert(Node* z) {
     z->right = T_NIL;
     z->color = RED;
 
-    // cout << "z.p " << z
-
     insert_fixup(z);
-
-    cout << "-----" << endl;
 }
 
 void Tree::insert_fixup(Node* z) {
@@ -163,6 +157,132 @@ void Tree::pre_order(Node* aux) {
     if (aux == T_NIL) return;
 
     pre_order(aux->left);
-    std::cout << aux->key << " ";
+    string color = aux->color ? "RED" : "BLACK";
+    std::cout << aux->key << " " << color << endl;
     pre_order(aux->right);
+}
+
+void Tree::transplant(Node* u, Node* v) {
+    if (u->parent == T_NIL) {
+        this->root = v;
+    } else if (u == u->parent->left) {
+        u->parent->left = v;
+    } else {
+        u->parent->right = v;
+    }
+
+    v->parent = u->parent;
+}
+
+Node* minValueNode(Node* node) {
+    Node* current = node;
+
+    /* loop down to find the leftmost leaf */
+    while (current->left != NULL) current = current->left;
+
+    return current;
+}
+
+Node* Tree::tree_minimum(Node* v) {
+    Node* aux = v;
+
+    while (aux->left != T_NIL) {
+        aux = aux->left;
+    }
+
+    return aux;
+}
+
+void Tree::remove_fixup(Node* x) {
+    while (x != this->root and x->color == BLACK) {
+        if (x == x->parent->left) {
+            Node* w = x->parent->right;
+
+            if (w->color == RED) {
+                w->color = BLACK;
+                x->parent->color = RED;
+                left_rotate(x->parent);
+                w = x->parent->right;
+            }
+
+            if (w->left->color == BLACK and w->right->color == BLACK) {
+                w->color = RED;
+                x = x->parent;
+            } else if (w->right->color == BLACK) {
+                w->left->color = BLACK;
+                w->color = RED;
+                right_rotate(w);
+                w = w->parent->right;
+            }
+
+            w->color = x->parent->color;
+            x->parent->color = BLACK;
+            w->right->color = BLACK;
+            left_rotate(x->parent);
+            x = this->root;
+        } else {
+            Node* w = x->parent->left;
+
+            if (w->color == RED) {
+                w->color = BLACK;
+                x->parent->color = RED;
+                right_rotate(x->parent);
+                w = x->parent->left;
+            }
+
+            if (w->right->color == BLACK and w->left->color == BLACK) {
+                w->color = RED;
+                x = x->parent;
+            } else if (w->left->color == BLACK) {
+                w->right->color = BLACK;
+                w->color = RED;
+                left_rotate(w);
+                w = w->parent->left;
+            }
+
+            w->color = x->parent->color;
+            x->parent->color = BLACK;
+            w->left->color = BLACK;
+            right_rotate(x->parent);
+            x = this->root;
+        }
+    }
+
+    x->color = BLACK;
+}
+
+void Tree::remove(Node* z) {
+    Node* x;
+
+    Node* y = z;
+    bool y_original_color = y->color;
+
+    if (z->left == T_NIL) {
+        x = z->right;
+        transplant(z, z->right);
+    } else if (z->right == T_NIL) {
+        x = z->left;
+        transplant(z, z->left);
+    } else {
+        y = tree_minimum(z->right);
+        y_original_color = y->color;
+        x = y->right;
+
+        if (y->parent == z) {
+            x->parent = y;
+        } else {
+            transplant(y, y->right);
+            y->right = z->right;
+            y->right->parent = y;
+        }
+
+        transplant(z, y);
+        y->left = z->left;
+        y->left->parent = y;
+        y->color = z->color;
+    }
+
+    if (y_original_color == BLACK) {
+        remove_fixup(x);
+    }
 }
